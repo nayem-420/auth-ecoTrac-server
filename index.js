@@ -22,6 +22,19 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
+
+    const db = client.db("ecoTracdb");
+    const challengesCollection = db.collection("challenges");
+
+    app.get("/challenges", async(req, res) => {
+      const result = await challengesCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.post('/challenges', async (req, res) => {
+      const result=await challengesCollection.
+    })
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
