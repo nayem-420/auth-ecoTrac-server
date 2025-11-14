@@ -72,27 +72,27 @@ async function run() {
     //   });
     // });
 
-    // app.get("/my-activities", async (req, res) => {
-    //   const email = req.query.email;
+    app.get("/my-activities", async (req, res) => {
+      const email = req.query.email;
 
-    //   const joined = await db
-    //     .collection("joinedChallenges")
-    //     .find({ email })
-    //     .toArray();
+      const joined = await db
+        .collection("joinedChallenges")
+        .find({ email })
+        .toArray();
 
-    //   // challenge details get
-    //   const ids = joined.map((j) => new ObjectId(j.challengeId));
+      // challenge details get
+      const ids = joined.map((j) => new ObjectId(j.challengeId));
 
-    //   const challenges = await db
-    //     .collection("challenges")
-    //     .find({ _id: { $in: ids } })
-    //     .toArray();
+      const challenges = await db
+        .collection("challenges")
+        .find({ _id: { $in: ids } })
+        .toArray();
 
-    //   res.send({
-    //     success: true,
-    //     challenges,
-    //   });
-    // });
+      res.send({
+        success: true,
+        challenges,
+      });
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
