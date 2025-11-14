@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -26,14 +26,78 @@ async function run() {
     const db = client.db("ecoTracdb");
     const challengesCollection = db.collection("challenges");
 
-    app.get("/challenges", async(req, res) => {
+    app.get("/challenges", async (req, res) => {
       const result = await challengesCollection.find().toArray();
       res.send(result);
     });
 
-    app.post('/challenges', async (req, res) => {
-      const result=await challengesCollection.
-    })
+    app.get("/challenges/:id", async (req, res) => {
+      const { id } = req.params;
+      console.log("Requested ID:", id);
+
+      const result = await challengesCollection.findOne({ _id: id });
+
+      console.log("Found result:", result);
+
+      res.send({
+        success: true,
+        result,
+      });
+    });
+
+    // app.post("/challenges/join/:id", async (req, res) => {
+    //   const userEmail = req.body.email;
+    //   const challengeId = req.params.id;
+
+    //   const joinData = {
+    //     email: userEmail,
+    //     challengeId,
+    //     joinedAt: new Date(),
+    //   };
+
+    //   const result = await db
+    //     .collection("joinedChallenges")
+    //     .insertOne(joinData);
+
+    //   res.send({
+    //     success: true,
+    //     message: "Joined successfully!",
+    //     result,
+    //   });
+    // });
+
+    // app.post("/challenges", async (req, res) => {
+    //   const data = req.body;
+    //   const result = await challengesCollection.insertOne(data);
+    //   res.send({
+    //     success: true,
+    //     result,
+    //   });
+    // });
+
+
+    // app.get("/my-activities", async (req, res) => {
+    //   const email = req.query.email;
+
+    //   const joined = await db
+    //     .collection("joinedChallenges")
+    //     .find({ email })
+    //     .toArray();
+
+    //   // challenge details get
+    //   const ids = joined.map((j) => new ObjectId(j.challengeId));
+
+    //   const challenges = await db
+    //     .collection("challenges")
+    //     .find({ _id: { $in: ids } })
+    //     .toArray();
+
+    //   res.send({
+    //     success: true,
+    //     challenges,
+    //   });
+    // });
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
