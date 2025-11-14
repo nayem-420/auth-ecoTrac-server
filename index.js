@@ -33,11 +33,8 @@ async function run() {
 
     app.get("/challenges/:id", async (req, res) => {
       const { id } = req.params;
-      console.log("Requested ID:", id);
 
       const result = await challengesCollection.findOne({ _id: id });
-
-      console.log("Found result:", result);
 
       res.send({
         success: true,
@@ -45,26 +42,26 @@ async function run() {
       });
     });
 
-    // app.post("/challenges/join/:id", async (req, res) => {
-    //   const userEmail = req.body.email;
-    //   const challengeId = req.params.id;
+    app.post("/challenges/join/:id", async (req, res) => {
+      const userEmail = req.body.email;
+      const challengeId = req.params.id;
 
-    //   const joinData = {
-    //     email: userEmail,
-    //     challengeId,
-    //     joinedAt: new Date(),
-    //   };
+      const joinData = {
+        email: userEmail,
+        challengeId,
+        joinedAt: new Date(),
+      };
 
-    //   const result = await db
-    //     .collection("joinedChallenges")
-    //     .insertOne(joinData);
+      const result = await db
+        .collection("joinedChallenges")
+        .insertOne(joinData);
 
-    //   res.send({
-    //     success: true,
-    //     message: "Joined successfully!",
-    //     result,
-    //   });
-    // });
+      res.send({
+        success: true,
+        message: "Joined successfully!",
+        result,
+      });
+    });
 
     // app.post("/challenges", async (req, res) => {
     //   const data = req.body;
@@ -74,7 +71,6 @@ async function run() {
     //     result,
     //   });
     // });
-
 
     // app.get("/my-activities", async (req, res) => {
     //   const email = req.query.email;
@@ -97,7 +93,6 @@ async function run() {
     //     challenges,
     //   });
     // });
-
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
