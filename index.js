@@ -35,11 +35,9 @@ async function run() {
       const { id } = req.params;
 
       const result = await challengesCollection.findOne({ _id: id });
+      console.log(result);
 
-      res.send({
-        success: true,
-        result,
-      });
+      res.send(result);
     });
 
     app.post("/challenges/join/:id", async (req, res) => {
@@ -63,14 +61,29 @@ async function run() {
       });
     });
 
-    // app.post("/challenges", async (req, res) => {
-    //   const data = req.body;
-    //   const result = await challengesCollection.insertOne(data);
-    //   res.send({
-    //     success: true,
-    //     result,
-    //   });
-    // });
+    app.post("/challenges", async (req, res) => {
+      const data = req.body;
+      const result = await challengesCollection.insertOne(data);
+      res.send({
+        success: true,
+        result,
+      });
+    });
+
+    app.put("/challenges/:id", async (req, res) => {
+      const { id } = req.params;
+      const data = req.body;
+
+      const filter = { _id: id };
+      const update = {
+        $set: data,
+      };
+      const result = await challengesCollection.updateOne(filter, update);
+
+      // console.log(id, data);
+
+      res.send(result);
+    });
 
     app.get("/my-activities", async (req, res) => {
       const email = req.query.email;
