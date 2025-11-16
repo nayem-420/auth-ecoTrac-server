@@ -85,6 +85,18 @@ async function run() {
       res.send(result);
     });
 
+    app.delete("/challenges/:id", async (req, res) => {
+      const { id } = req.params;
+      const filter = { _id: id };
+
+      const result=await challengesCollection.deleteOne(filter)
+
+      res.send({
+        success: true,
+        result
+      });
+    });
+
     app.get("/my-activities", async (req, res) => {
       const email = req.query.email;
 
