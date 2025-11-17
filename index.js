@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 const port = process.env.PORT || 3000;
@@ -7,8 +8,7 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-const uri =
-  "mongodb+srv://ecoTracdbUser:VzK4LyL9KDLL4Lm7@cluster0.xhgpsyg.mongodb.net/?appName=Cluster0";
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.xhgpsyg.mongodb.net/?appName=Cluster0`;
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -33,10 +33,9 @@ async function run() {
 
     app.get("/challenges/:id", async (req, res) => {
       const { id } = req.params;
-
-      const result = await challengesCollection.findOne({ _id: id });
-      console.log(result);
-
+      const result = await challengesCollection.findOne({
+        _id: new ObjectId(id),
+      });
       res.send(result);
     });
 
@@ -74,26 +73,26 @@ async function run() {
       const { id } = req.params;
       const data = req.body;
 
-      const filter = { _id: id };
-      const update = {
-        $set: data,
-      };
+      const filter = { _id: new ObjectId(id) };
+
+      const update = { $set: data };
+
       const result = await challengesCollection.updateOne(filter, update);
-
-      // console.log(id, data);
-
-      res.send(result);
+      res.send({
+        success: true,
+        result,
+      });
     });
 
     app.delete("/challenges/:id", async (req, res) => {
       const { id } = req.params;
-      const filter = { _id: id };
+      const filter = { _id: new ObjectId(id) };
 
-      const result=await challengesCollection.deleteOne(filter)
+      const result = await challengesCollection.deleteOne(filter);
 
       res.send({
         success: true,
-        result
+        result,
       });
     });
 
