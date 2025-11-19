@@ -44,9 +44,18 @@ async function run() {
     // GET: Challenge Details
     // -------------------------------------------------
     app.get("/challenges/:id", async (req, res) => {
+      const id = req.params.id;
+
       const result = await challengesCollection.findOne({
-        _id: new ObjectId(req.params.id),
+        _id: new ObjectId(id),
       });
+
+      if (!result) {
+        return res
+          .status(404)
+          .send({ success: false, message: "Challenge not found" });
+      }
+
       res.send(result);
     });
 
@@ -86,42 +95,36 @@ async function run() {
       const { email } = req.body;
       const challengeId = new ObjectId(req.params.id);
 
-      try {
-        // Check if already joined
-        const already = await userActivitiesCollection.findOne({
-          challengeId,
-          email,
-        });
+      const already = await userActivitiesCollection.findOne({
+        challengeId,
+        email,
+      });
 
-        if (already) {
-          return res.send({ success: false, message: "Already joined!" });
-        }
-
-        // Increase participants
-        await challengesCollection.updateOne(
-          { _id: challengeId },
-          { $inc: { participants: 1 } }
-        );
-
-        // Add user activity
-        await userActivitiesCollection.insertOne({
-          challengeId,
-          email,
-          joinedAt: new Date(),
-        });
-
-        // Optional: Log join event
-        await joinedChallengesCollection.insertOne({
-          challengeId,
-          email,
-          joinedAt: new Date(),
-        });
-
-        res.send({ success: true, message: "Joined successfully!" });
-      } catch (err) {
-        console.log(err);
-        res.status(500).send({ success: false, message: "Server Error" });
+      if (already) {
+        return res.send({ success: false, message: "Already joined!" });
       }
+
+      // Increase participants
+      await challengesCollection.updateOne(
+        { _id: challengeId },
+        { $inc: { participants: 1 } }
+      );
+
+      // Add user activity
+      await userActivitiesCollection.insertOne({
+        challengeId,
+        email,
+        joinedAt: new Date(),
+      });
+
+      // Optional: Log join event
+      await joinedChallengesCollection.insertOne({
+        challengeId,
+        email,
+        joinedAt: new Date(),
+      });
+
+      res.send({ success: true, message: "Joined successfully!" });
     });
 
     // -------------------------------------------------
@@ -138,36 +141,79 @@ async function run() {
     app.get("/my-activities", async (req, res) => {
       const email = req.query.email;
 
-      const joined = await userActivitiesCollection.find({ email }).toArray();
+      if (!email) {
+        return res.status(400).send({
+          success: false,
+          message: "Email is required",
+        });
+      }
 
-      const ids = joined.map((j) => new ObjectId(j.challengeId));
-
-      const challenges = await challengesCollection
-        .find({ _id: { $in: ids } })
+      // Fetch all activities
+      const activities = await userActivitiesCollection
+        .find({ email })
+        .sort({ joinedAt: -1 })
         .toArray();
 
-      res.send({ success: true, challenges });
+      const populatedActivities = await Promise.all(
+        activities.map(async (activity) => {
+          if (activity.challengeId) {
+            const challenge = await challengesCollection.findOne({
+              _id: activity.challengeId,
+            });
+            return { ...activity, challengeDetails: challenge };
+          }
+          return activity;
+        })
+      );
+
+      res.send({
+        success: true,
+        activities: populatedActivities,
+      });
     });
 
     // -------------------------------------------------
     // POST: Add Tips
     // -------------------------------------------------
     app.post("/api/tips", async (req, res) => {
-      const tip = {
-        ...req.body,
-        createdAt: new Date(),
-        upvotes: req.body.upvotes || 0,
-      };
+      try {
+        const { title, content, category, email } = req.body;
 
-      const result = await tipsCollection.insertOne(tip);
-      res.send(result);
+        const tip = {
+          title,
+          content,
+          category,
+          email,
+          createdAt: new Date(),
+        };
+
+        const tipResult = await tipsCollection.insertOne(tip);
+
+        // Insert into userActivities
+        await userActivitiesCollection.insertOne({
+          tipId: tipResult.insertedId,
+          title,
+          category,
+          email,
+          type: "tip",
+          joinedAt: new Date(),
+        });
+
+        res.send({ success: true, tipResult });
+      } catch (err) {
+        console.error(err);
+        res.status(500).send({ success: false, message: "Server Error" });
+      }
     });
 
     // -------------------------------------------------
     // GET: Tips
     // -------------------------------------------------
     app.get("/api/tips", async (req, res) => {
-      const result = await tipsCollection.find().toArray();
+      const result = await tipsCollection
+        .find()
+        .sort({ createdAt: -1 })
+        .toArray();
       res.send(result);
     });
 
