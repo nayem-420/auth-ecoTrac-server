@@ -22,7 +22,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
+    
 
     const db = client.db("ecoTracdb");
 
@@ -32,17 +32,17 @@ async function run() {
     const joinedChallengesCollection = db.collection("joinedChallenges");
     const tipsCollection = db.collection("tips");
 
-    // -------------------------------------------------
-    // GET: All Challenges
-    // -------------------------------------------------
+    /**
+     * GET: All Challenges
+     */
     app.get("/challenges", async (req, res) => {
       const result = await challengesCollection.find().toArray();
       res.send(result);
     });
 
-    // -------------------------------------------------
-    // GET: Challenge Details
-    // -------------------------------------------------
+    /**
+     * GET: Challenge Details
+     */
     app.get("/challenges/:id", async (req, res) => {
       const id = req.params.id;
 
@@ -59,17 +59,17 @@ async function run() {
       res.send(result);
     });
 
-    // -------------------------------------------------
-    // POST: Create New Challenge
-    // -------------------------------------------------
+    /**
+     * POST: Create New Challenge
+     */
     app.post("/challenges", async (req, res) => {
       const result = await challengesCollection.insertOne(req.body);
       res.send({ success: true, result });
     });
 
-    // -------------------------------------------------
-    // PUT: Update Challenge
-    // -------------------------------------------------
+    /**
+     * PUT: Update Challenge
+     */
     app.put("/challenges/:id", async (req, res) => {
       const result = await challengesCollection.updateOne(
         { _id: new ObjectId(req.params.id) },
@@ -78,9 +78,9 @@ async function run() {
       res.send({ success: true, result });
     });
 
-    // -------------------------------------------------
-    // DELETE: Delete Challenge
-    // -------------------------------------------------
+    /**
+     * DELETE: Delete Challenge
+     */
     app.delete("/challenges/:id", async (req, res) => {
       const result = await challengesCollection.deleteOne({
         _id: new ObjectId(req.params.id),
@@ -88,9 +88,9 @@ async function run() {
       res.send({ success: true, result });
     });
 
-    // -------------------------------------------------
-    // POST: Join Challenge
-    // -------------------------------------------------
+    /**
+     * POST: Join Challenge
+     */
     app.post("/challenges/join/:id", async (req, res) => {
       const { email } = req.body;
       const challengeId = new ObjectId(req.params.id);
@@ -127,17 +127,17 @@ async function run() {
       res.send({ success: true, message: "Joined successfully!" });
     });
 
-    // -------------------------------------------------
-    // GET: Joined Challenges List (admin/log)
-    // -------------------------------------------------
+    /**
+     * GET: Joined Challenges List (admin/log)
+     */
     app.get("/challenges/joinedChallenges", async (req, res) => {
       const result = await joinedChallengesCollection.find().toArray();
       res.send(result);
     });
 
-    // -------------------------------------------------
-    // GET: My Activities (user dashboard)
-    // -------------------------------------------------
+    /**
+     * GET: My Activities (user dashboard)
+     */
     app.get("/my-activities", async (req, res) => {
       const email = req.query.email;
 
@@ -172,9 +172,9 @@ async function run() {
       });
     });
 
-    // -------------------------------------------------
-    // POST: Add Tips
-    // -------------------------------------------------
+    /**
+     * POST: Add Tips
+     */
     app.post("/api/tips", async (req, res) => {
       try {
         const { title, content, category, email } = req.body;
@@ -206,9 +206,9 @@ async function run() {
       }
     });
 
-    // -------------------------------------------------
-    // GET: Tips
-    // -------------------------------------------------
+    /**
+     * GET: Tips
+     */
     app.get("/api/tips", async (req, res) => {
       const result = await tipsCollection
         .find()
